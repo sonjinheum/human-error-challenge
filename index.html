@@ -1,41 +1,317 @@
-<!doctype html><html lang='ko'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Human Error Challenge</title><style>
-:root{--bg:#07111f;--panel:#101d31;--text:#f5f7fb;--muted:#9fb0c7;--accent:#43e6ff;--good:#69f0ae;--bad:#ff6577}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,'Noto Sans KR',sans-serif;background:radial-gradient(circle at top,#122b49,#07111f 55%);color:var(--text);min-height:100vh}.wrap{max-width:900px;margin:auto;padding:24px}.card{background:rgba(16,29,49,.94);border:1px solid #29405e;border-radius:22px;padding:24px;box-shadow:0 18px 60px #0007}.center{text-align:center}.hidden{display:none!important}h1{font-size:clamp(30px,7vw,60px);margin:10px 0}.sub{color:var(--muted)}button,input{font:inherit}button{border:0;border-radius:14px;padding:15px 18px;font-weight:800;cursor:pointer;background:#1b3555;color:white;margin:6px}.primary{background:var(--accent);color:#00151b}.danger{background:#6e2630}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.colors{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.colorBtn{height:78px;border:2px solid #ffffff33;font-size:18px}.word{font-size:clamp(48px,14vw,96px);font-weight:1000;margin:28px 0;text-shadow:0 4px 20px #000}.hud{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.pill{background:#07111f;border:1px solid #29405e;border-radius:999px;padding:8px 13px}.timer{font-size:30px;font-weight:900}.list{display:grid;gap:8px;margin-top:16px}.row{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;padding:12px;background:#0a1627;border-radius:12px}.admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;background:#07111f;color:white;margin:8px 0}.msg{padding:12px;border-radius:12px;background:#0a1627;margin:10px 0}.small{font-size:13px;color:var(--muted)}@media(min-width:700px){.colors{grid-template-columns:repeat(4,1fr)}}
-</style></head><body><div class='wrap'>
-<section id='home' class='card center'><div class='sub'>HUMAN ERROR PREVENTION</div><h1>HUMAN ERROR<br>CHALLENGE</h1><p class='sub'>누구나 실수할 수 있습니다.</p><button class='primary' onclick="show('join')">게임 참가</button><button onclick="show('adminLogin')">관리자</button></section>
-<section id='join' class='card hidden'><h2>게임 참가</h2><input id='name' maxlength='16' placeholder='이름 또는 닉네임'><input id='room' maxlength='8' placeholder='ROOM CODE' value='4821'><button class='primary' onclick='joinGame()'>참가하기</button><button onclick="show('home')">뒤로</button><div id='joinMsg' class='small'></div></section>
-<section id='waiting' class='card center hidden'><h2>참가 완료!</h2><p>교수자의 게임 시작을 기다려주세요.</p><div class='pill'>현재 참가자 <b id='count'>0</b>명</div><p class='small'>ROOM <span id='roomLabel'></span></p></section>
-<section id='adminLogin' class='card hidden'><h2>관리자</h2><input id='adminRoom' maxlength='8' placeholder='ROOM CODE' value='4821'><input id='pw' type='password' placeholder='관리자 비밀번호'><button class='primary' onclick='adminLogin()'>접속</button><button onclick="show('home')">뒤로</button><p class='small'>※ KHNP 비밀번호는 편의용 UI 잠금입니다. 공개 정적 사이트에서 강한 보안 수단은 아닙니다.</p></section>
-<section id='admin' class='card hidden'><div class='hud'><h2>ADMIN DASHBOARD</h2><div class='pill'>참가자 <b id='adminCount'>0</b>명</div></div><div class='admin-grid'><button class='primary' onclick='setStage(1)'>1단계 START</button><button onclick="setStatus('stage1Result')">1단계 결과</button><button class='primary' onclick='setStage(2)'>2단계 START</button><button onclick="setStatus('stage2Result')">2단계 결과</button><button class='primary' onclick='setStage(3)'>3단계 START</button><button onclick="setStatus('stage3Result')">3단계 결과</button><button onclick="setStatus('final')">최종 결과</button><button class='danger' onclick='resetGame()'>게임 초기화</button></div><div id='adminStatus' class='msg'></div><h3>참가자</h3><div id='people' class='list'></div><h3>Ranking</h3><div id='rank' class='list'></div></section>
-<section id='game' class='card center hidden'><div class='hud'><span class='pill'>STAGE <b id='stageNo'></b></span><span class='timer'><b id='time'>60</b>s</span><span class='pill'>SCORE <b id='score'>0</b></span></div><div id='word' class='word'>빨강</div><div id='colors' class='colors'></div><div class='small'>단어의 뜻이 아니라 <b>글자의 실제 색</b>을 선택하세요.</div></section>
-<section id='result' class='card hidden'><h2 id='resultTitle'>RANKING</h2><div id='resultRank' class='list'></div><div id='errorBox' class='hidden'><h2>ERROR RANKING</h2><p class='small'>압박 조건에서 발생한 오류 횟수 — 오답이 많은 순</p><div id='errorRank' class='list'></div></div><p class='center sub'>다음 진행을 기다려주세요.</p></section>
-<section id='final' class='card hidden'><h2>FINAL RANKING</h2><div id='finalRank' class='list'></div><hr style='border-color:#29405e;margin:24px 0'><div class='center'><h2>잠깐! 당신도 방금 실수했습니다.</h2><p>인간은 누구나 실수할 수 있습니다.</p><p class='sub'>선택지가 많아지고, 시간이 부족해지고, 실수에 대한 부담이 커질수록 우리는 더 쉽게 오류를 범합니다.</p><h3>중요한 것은 실수하지 않는 사람이 되는 것이 아니라,<br>실수가 사고로 이어지지 않도록 환경과 절차를 설계하는 것입니다.</h3></div></section>
-</div><script>
-// UI bootstrap: keep the first-screen navigation working independently of Firebase loading.
-window.show=function(id){document.querySelectorAll('section').forEach(function(x){x.classList.add('hidden')});var el=document.getElementById(id);if(el)el.classList.remove('hidden')};
-window.addEventListener('error',function(e){console.error('HUMAN ERROR CHALLENGE:',e.message)});
-</script><script type='module'>
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Human Error Challenge</title>
+<style>
+:root{--bg:#07111f;--panel:#101d31;--text:#f5f7fb;--muted:#9fb0c7;--accent:#43e6ff;--good:#69f0ae;--bad:#ff6577}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,'Noto Sans KR',sans-serif;background:radial-gradient(circle at top,#122b49,#07111f 55%);color:var(--text);min-height:100vh}
+.wrap{max-width:900px;margin:auto;padding:24px}.card{background:rgba(16,29,49,.94);border:1px solid #29405e;border-radius:22px;padding:24px;box-shadow:0 18px 60px #0007}
+.center{text-align:center}.hidden{display:none!important}h1{font-size:clamp(30px,7vw,60px);margin:10px 0}.sub{color:var(--muted)}
+button,input{font:inherit}button{border:0;border-radius:14px;padding:15px 18px;font-weight:800;cursor:pointer;background:#1b3555;color:white;margin:6px}.primary{background:var(--accent);color:#00151b}.danger{background:#6e2630}
+.colors{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.colorBtn{height:78px;border:2px solid #ffffff33;font-size:18px}
+.wordArea{min-height:180px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.word{font-size:clamp(48px,14vw,96px);font-weight:1000;margin:28px 0;text-shadow:0 4px 20px #000;transition:font-size .08s,transform .08s}
+.hud{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.pill{background:#07111f;border:1px solid #29405e;border-radius:999px;padding:8px 13px}.timer{font-size:30px;font-weight:900}
+.list{display:grid;gap:8px;margin-top:16px}.row{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;padding:12px;background:#0a1627;border-radius:12px}
+.admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;background:#07111f;color:white;margin:8px 0}
+.msg{padding:12px;border-radius:12px;background:#0a1627;margin:10px 0}.small{font-size:13px;color:var(--muted)}
+@media(min-width:700px){.colors{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section id="home" class="card center">
+  <div class="sub">HUMAN ERROR PREVENTION</div><h1>HUMAN ERROR<br>CHALLENGE</h1>
+  <p class="sub">누구나 실수할 수 있습니다.</p>
+  <button class="primary" data-action="go" data-target="join">게임 참가</button>
+  <button data-action="go" data-target="adminLogin">관리자</button>
+</section>
+
+<section id="join" class="card hidden">
+  <h2>게임 참가</h2>
+  <input id="name" maxlength="16" placeholder="이름 또는 닉네임">
+  <input id="room" maxlength="8" placeholder="ROOM CODE" value="4821">
+  <button class="primary" id="joinBtn">참가하기</button>
+  <button data-action="go" data-target="home">뒤로</button>
+  <div id="joinMsg" class="small"></div>
+</section>
+
+<section id="waiting" class="card center hidden">
+  <h2>참가 완료!</h2><p>교수자의 게임 시작을 기다려주세요.</p>
+  <div class="pill">현재 참가자 <b id="count">0</b>명</div>
+  <p class="small">ROOM <span id="roomLabel"></span></p>
+</section>
+
+<section id="adminLogin" class="card hidden">
+  <h2>관리자</h2>
+  <input id="adminRoom" maxlength="8" placeholder="ROOM CODE" value="4821">
+  <input id="pw" type="password" placeholder="관리자 비밀번호">
+  <button class="primary" id="adminLoginBtn">접속</button>
+  <button data-action="go" data-target="home">뒤로</button>
+  <p class="small">※ KHNP 비밀번호는 편의용 UI 잠금입니다. 공개 정적 사이트에서 강한 보안 수단은 아닙니다.</p>
+</section>
+
+<section id="admin" class="card hidden">
+  <div class="hud"><h2>ADMIN DASHBOARD</h2><div class="pill">참가자 <b id="adminCount">0</b>명</div></div>
+  <div class="admin-grid">
+    <button class="primary" data-stage="1">1단계 START</button><button data-status="stage1Result">1단계 결과</button>
+    <button class="primary" data-stage="2">2단계 START</button><button data-status="stage2Result">2단계 결과</button>
+    <button class="primary" data-stage="3">3단계 START</button><button data-status="stage3Result">3단계 결과</button>
+    <button id="finalBtn">최종 결과</button><button class="danger" id="resetBtn">게임 초기화</button>
+  </div>
+  <div id="adminStatus" class="msg">대기 중</div>
+  <h3>참가자</h3><div id="people" class="list"></div>
+  <h3>Ranking</h3><div id="rank" class="list"></div>
+</section>
+
+<section id="game" class="card center hidden">
+  <div class="hud"><span class="pill">STAGE <b id="stageNo"></b></span><span class="timer"><b id="time">60</b>s</span><span class="pill">SCORE <b id="score">0</b></span></div>
+  <div class="wordArea"><div id="word" class="word">빨강</div></div>
+  <div id="colors" class="colors"></div>
+  <div class="small">단어의 뜻이 아니라 <b>글자의 실제 색</b>을 선택하세요.</div>
+</section>
+
+<section id="result" class="card hidden">
+  <h2 id="resultTitle">RANKING</h2><div id="resultRank" class="list"></div>
+  <div id="errorBox" class="hidden"><h2>ERROR RANKING</h2><p class="small">압박 조건에서 발생한 오류 횟수 — 오답이 많은 순</p><div id="errorRank" class="list"></div></div>
+  <p class="center sub">다음 진행을 기다려주세요.</p>
+</section>
+
+<section id="final" class="card hidden">
+  <h2>FINAL RANKING</h2><div id="finalRank" class="list"></div>
+  <hr style="border-color:#29405e;margin:24px 0">
+  <div class="center"><h2>잠깐! 당신도 방금 실수했습니다.</h2><p>인간은 누구나 실수할 수 있습니다.</p>
+  <p class="sub">선택지가 많아지고, 시간이 부족해지고, 실수에 대한 부담이 커질수록 우리는 더 쉽게 오류를 범합니다.</p>
+  <h3>중요한 것은 실수하지 않는 사람이 되는 것이 아니라,<br>실수가 사고로 이어지지 않도록 환경과 절차를 설계하는 것입니다.</h3></div>
+</section>
+</div>
+
+<script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import { getDatabase,ref,set,get,onValue,update,remove,serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js';
 import { firebaseConfig } from './firebase-config.js';
-const app=initializeApp(firebaseConfig), db=getDatabase(app); window.db=db; document.documentElement.dataset.firebase='ready';
-const C={1:[['빨강','#e53935'],['파랑','#2787ff'],['초록','#19b56b'],['노랑','#ffd633']],2:[['빨강','#e53935'],['주황','#ff8a25'],['파랑','#2787ff'],['보라','#a55cff'],['초록','#19b56b'],['노랑','#ffd633']],3:[['빨강','#e53935'],['주황','#ff8a25'],['파랑','#2787ff'],['보라','#a55cff'],['초록','#19b56b'],['노랑','#ffd633'],['분홍','#ff66ad'],['갈색','#9a633f']]};
-let lastStartTime=0;let roomId='',pid=localStorage.he_pid||((crypto.randomUUID&&crypto.randomUUID())||('p-'+Date.now()+'-'+Math.random().toString(36).slice(2))),name='',stage=0,score=0,correct=0,wrong=0,answer='',ended=false,timer=null,isAdmin=false;
-localStorage.he_pid=pid; const $=id=>document.getElementById(id); const show=window.show;
-function roomRef(path=''){return ref(db,`rooms/${roomId}/${path}`)}
-window.joinGame=async()=>{try{name=$('name').value.trim();roomId=$('room').value.trim().toUpperCase();if(!name||!roomId)return $('joinMsg').textContent='이름과 ROOM CODE를 입력하세요.';$('joinMsg').textContent='접속 중...';localStorage.he_name=name;localStorage.he_room=roomId;await set(roomRef(`participants/${pid}`),{name,joinedAt:Date.now()});$('roomLabel').textContent=roomId;listenRoom();show('waiting')}catch(e){console.error(e);$('joinMsg').textContent='접속에 실패했습니다. 인터넷/Firebase 설정을 확인해주세요.'}};
-window.adminLogin=()=>{try{if($('pw').value!=='KHNP')return alert('비밀번호가 올바르지 않습니다.');roomId=$('adminRoom').value.trim().toUpperCase();if(!roomId)return alert('ROOM CODE를 입력하세요.');isAdmin=true;listenAdmin();show('admin')}catch(e){console.error(e);alert('관리자 화면을 여는 중 오류가 발생했습니다.')}};
-function listenRoom(){onValue(roomRef('participants'),s=>$('count').textContent=s.exists()?Object.keys(s.val()).length:0);onValue(roomRef('game'),s=>{if(!s.exists())return;let g=s.val();if(g.status==='stage'+g.currentStage)startStage(g.currentStage,g.startTime);else if(/Result$/.test(g.status))showResults(g.currentStage);else if(g.status==='final')showFinal();else if(g.status==='waiting')show('waiting')})}
-window.setStage=async s=>{await set(roomRef('game'),{status:'stage'+s,currentStage:s,startTime:Date.now()+1500});}; window.setStatus=async status=>{let s=Number((status.match(/\d/)||[stage||1])[0]);await update(roomRef('game'),{status,currentStage:s});};
-window.resetGame=async()=>{if(!confirm('현재 참가자와 모든 결과가 삭제됩니다. 초기화하시겠습니까?'))return;await remove(roomRef());await set(roomRef('game'),{status:'waiting',currentStage:0,startTime:0})};
-function listenAdmin(){onValue(roomRef('participants'),s=>{let p=s.val()||{};$('adminCount').textContent=Object.keys(p).length;$('people').innerHTML=Object.values(p).map((x,i)=>`<div class=row><b>${i+1}</b><span>${esc(x.name)}</span><span>READY</span></div>`).join('')});onValue(roomRef('game'),s=>{$('adminStatus').textContent=s.exists()?`현재 상태: ${s.val().status}`:'대기 중'});onValue(roomRef('results'),()=>renderAdminRank())}
-async function startStage(s,startTime){startTime=Number(startTime)||Date.now();if(stage===s&&lastStartTime===startTime)return;lastStartTime=startTime;stage=s;score=correct=wrong=0;ended=false;$('stageNo').textContent=s;$('score').textContent=0;show('game');makeQ();clearInterval(timer);timer=setInterval(()=>{let left=Math.max(0,Math.ceil((startTime+60000-Date.now())/1000));$('time').textContent=left;if(left<=0)finishStage()},200)}
-function makeQ(){if(ended)return;let a=C[stage],meaning=a[Math.floor(Math.random()*a.length)],ink=a[Math.floor(Math.random()*a.length)];if(Math.random()<.75&&ink[0]===meaning[0])ink=a[(a.indexOf(ink)+1)%a.length];answer=ink[0];$('word').textContent=meaning[0];$('word').style.color=ink[1];$('colors').innerHTML=[...a].sort(()=>Math.random()-.5).map(x=>`<button class=colorBtn data-n="${x[0]}" style="background:${x[1]};color:${x[0]==='노랑'?'#111':'white'}">${x[0]}</button>`).join('');document.querySelectorAll('.colorBtn').forEach(b=>b.onclick=()=>pick(b.dataset.n))}
-function pick(x){if(ended||Number($('time').textContent)<=0)return;if(x===answer){correct++;score+=10}else{wrong++;score-=stage===1?0:stage===2?10:50}$('score').textContent=score;makeQ()}
-async function finishStage(){if(ended)return;ended=true;clearInterval(timer);let key=`he_submitted_${roomId}_${stage}_${lastStartTime}`;if(!localStorage.getItem(key)){await set(roomRef(`results/stage${stage}/${pid}`),{pid,name,score,correct,wrong,attempts:correct+wrong,submittedAt:serverTimestamp(),startTime:lastStartTime});localStorage.setItem(key,'1')}showResults(stage)}
-async function getStage(s){let snap=await get(roomRef(`results/stage${s}`)),v=snap.val()||{};return Object.entries(v).map(([id,x])=>({...x,pid:x.pid||id}))}
-function rows(arr,metric='score'){return arr.map((x,i)=>`<div class=row><b>${i+1}</b><span>${esc(x.name)}</span><strong>${metric==='wrong'?x.wrong+' Errors':x.score+'점'}</strong></div>`).join('')||'<div class=msg>아직 결과가 없습니다.</div>'}
-async function showResults(s){stage=s;let a=await getStage(s);a.sort((x,y)=>y.score-x.score||y.correct-x.correct||x.wrong-y.wrong);$('resultTitle').textContent=`STAGE ${s} RANKING`;$('resultRank').innerHTML=rows(a);$('errorBox').classList.toggle('hidden',s!==3);if(s===3)$('errorRank').innerHTML=rows([...a].sort((x,y)=>y.wrong-x.wrong||x.score-y.score),'wrong');show('result')}
-async function showFinal(){let all={};for(let s=1;s<=3;s++){for(let x of await getStage(s)){let id=x.pid||x.name;all[id]??={name:x.name,score:0,correct:0,wrong:0};all[id].name=x.name;all[id].score+=Number(x.score)||0;all[id].correct+=Number(x.correct)||0;all[id].wrong+=Number(x.wrong)||0}}let a=Object.values(all).sort((x,y)=>y.score-x.score||y.correct-x.correct||x.wrong-y.wrong);$('finalRank').innerHTML=a.map((x,i)=>`<div class=row><b>${i+1}</b><span>${esc(x.name)}<div class=small>정답 ${x.correct} · 오답 ${x.wrong}</div></span><strong>${x.score}점</strong></div>`).join('')||'<div class=msg>아직 결과가 없습니다.</div>';show('final')}
-async function renderAdminRank(){let g=await get(roomRef('game'));if(!g.exists())return;let s=g.val().currentStage||1,a=await getStage(s);a.sort((x,y)=>y.score-x.score);$('rank').innerHTML=rows(a)}function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-if(localStorage.he_room&&localStorage.he_name){roomId=localStorage.he_room;name=localStorage.he_name;$('name').value=name;$('room').value=roomId}
-</script></body></html>
+
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+const $=id=>document.getElementById(id);
+const show=id=>{document.querySelectorAll('section').forEach(x=>x.classList.add('hidden'));$(id)?.classList.remove('hidden')};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const C={
+1:[['빨강','#e53935'],['파랑','#2787ff'],['초록','#19b56b'],['노랑','#ffd633']],
+2:[['빨강','#e53935'],['주황','#ff8a25'],['파랑','#2787ff'],['보라','#a55cff'],['초록','#19b56b'],['노랑','#ffd633']],
+3:[['빨강','#e53935'],['주황','#ff8a25'],['파랑','#2787ff'],['보라','#a55cff'],['초록','#19b56b'],['노랑','#ffd633'],['분홍','#ff66ad'],['갈색','#9a633f']]
+};
+
+let roomId='',name='',stage=0,score=0,correct=0,wrong=0,answer='',ended=false,timer=null,lastStartTime=0;
+let pid=localStorage.he_pid || (crypto.randomUUID?.() || ('p-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
+localStorage.he_pid=pid;
+
+const roomRef=(path='')=>ref(db,`rooms/${roomId}${path?'/'+path:''}`);
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  if(b.dataset.action==='go')show(b.dataset.target);
+  if(b.dataset.stage)setStage(Number(b.dataset.stage));
+  if(b.dataset.status)setStatus(b.dataset.status);
+});
+$('joinBtn').addEventListener('click',joinGame);
+$('adminLoginBtn').addEventListener('click',adminLogin);
+$('finalBtn').addEventListener('click',()=>setStatus('final'));
+$('resetBtn').addEventListener('click',resetGame);
+
+async function joinGame(){
+  try{
+    name=$('name').value.trim(); roomId=$('room').value.trim().toUpperCase();
+    if(!name||!roomId){$('joinMsg').textContent='이름과 ROOM CODE를 입력하세요.';return}
+    $('joinMsg').textContent='접속 중...';
+    localStorage.he_name=name; localStorage.he_room=roomId;
+    await set(roomRef(`participants/${pid}`),{name,joinedAt:Date.now()});
+    $('roomLabel').textContent=roomId; listenParticipant(); show('waiting');
+  }catch(e){console.error(e);$('joinMsg').textContent='접속에 실패했습니다. 인터넷/Firebase 설정을 확인해주세요.'}
+}
+
+function adminLogin(){
+  if($('pw').value!=='KHNP'){alert('비밀번호가 올바르지 않습니다.');return}
+  roomId=$('adminRoom').value.trim().toUpperCase();
+  if(!roomId){alert('ROOM CODE를 입력하세요.');return}
+  show('admin');
+  listenAdmin();
+}
+
+function listenParticipant(){
+  onValue(roomRef('participants'),s=>$('count').textContent=s.exists()?s.size:Object.keys(s.val()||{}).length);
+  onValue(roomRef('game'),s=>{
+    if(!s.exists())return;
+    const g=s.val()||{};
+    if(/^stage[123]$/.test(g.status))startStage(Number(g.currentStage),Number(g.startTime));
+    else if(/^stage[123]Result$/.test(g.status))showResults(Number(g.currentStage));
+    else if(g.status==='final')showFinal();
+    else if(g.status==='waiting')show('waiting');
+  });
+}
+
+function listenAdmin(){
+  onValue(roomRef('participants'),s=>{
+    const p=s.val()||{};
+    const entries=Object.entries(p);
+    $('adminCount').textContent=entries.length;
+    $('people').innerHTML=entries.length?entries.map(([id,x],i)=>`<div class="row"><b>${i+1}</b><span>${esc(x.name)}</span><span>READY</span></div>`).join(''):'<div class="msg">아직 참가자가 없습니다.</div>';
+  },e=>{$('adminStatus').textContent='참가자 읽기 오류: '+e.message;console.error(e)});
+  onValue(roomRef('game'),s=>{
+    const g=s.val()||{};
+    $('adminStatus').textContent=g.status?`현재 상태: ${g.status}`:'대기 중';
+    renderAdminRank(Number(g.currentStage)||0);
+  },e=>console.error(e));
+  onValue(roomRef('results'),()=>renderAdminRank(),e=>console.error(e));
+}
+
+async function setStage(s){
+  try{
+    stage=s;
+    await set(roomRef('game'),{status:`stage${s}`,currentStage:s,startTime:Date.now()+1500});
+    $('adminStatus').textContent=`1.5초 후 ${s}단계 시작`;
+  }catch(e){console.error(e);alert('단계 시작에 실패했습니다: '+e.message)}
+}
+
+async function setStatus(status){
+  try{
+    let current=stage;
+    if(/^stage([123])Result$/.test(status)) current=Number(status.match(/^stage([123])Result$/)[1]);
+    if(status==='final') current=3;
+    await update(roomRef('game'),{status,currentStage:current});
+    $('adminStatus').textContent=`현재 상태: ${status}`;
+    if(/^stage[123]Result$/.test(status))await renderAdminRank(current);
+    if(status==='final')await renderAdminFinal();
+  }catch(e){console.error(e);alert('상태 변경에 실패했습니다: '+e.message)}
+}
+
+async function resetGame(){
+  if(!confirm('현재 참가자와 모든 결과가 삭제됩니다. 초기화하시겠습니까?'))return;
+  try{
+    await remove(roomRef());
+    await set(roomRef('game'),{status:'waiting',currentStage:0,startTime:0});
+    $('rank').innerHTML=''; $('people').innerHTML=''; $('adminCount').textContent='0';
+    $('adminStatus').textContent='초기화 완료 · 새 참가자를 기다리는 중';
+  }catch(e){console.error(e);alert('초기화에 실패했습니다: '+e.message)}
+}
+
+function startStage(s,startTime){
+  startTime=Number(startTime)||Date.now();
+  if(stage===s&&lastStartTime===startTime&&!ended)return;
+  clearInterval(timer);
+  lastStartTime=startTime; stage=s; score=0; correct=0; wrong=0; ended=false;
+  $('stageNo').textContent=s; $('score').textContent='0'; $('time').textContent='60'; show('game');
+  makeQ();
+  const tick=()=>{
+    const left=Math.max(0,Math.ceil((startTime+60000-Date.now())/1000));
+    $('time').textContent=left;
+    if(left<=0)finishStage();
+  };
+  tick(); timer=setInterval(tick,200);
+}
+
+function makeQ(){
+  if(ended)return;
+  const a=C[stage];
+  const meaning=a[Math.floor(Math.random()*a.length)];
+  let ink=a[Math.floor(Math.random()*a.length)];
+  if(Math.random()<.75&&ink[0]===meaning[0])ink=a[(a.indexOf(ink)+1)%a.length];
+  answer=ink[0];
+  $('word').textContent=meaning[0]; $('word').style.color=ink[1];
+
+  if(stage===1){
+    $('word').style.fontSize='clamp(48px,14vw,96px)';
+    $('word').style.transform='translateX(0)';
+  }else if(stage===2){
+    const sizes=['clamp(38px,10vw,66px)','clamp(48px,14vw,96px)','clamp(62px,17vw,116px)'];
+    $('word').style.fontSize=sizes[Math.floor(Math.random()*sizes.length)];
+    $('word').style.transform='translateX(0)';
+  }else{
+    const sizes=['clamp(34px,9vw,58px)','clamp(46px,13vw,86px)','clamp(62px,17vw,112px)'];
+    const shifts=[-32,-20,-10,0,10,20,32];
+    $('word').style.fontSize=sizes[Math.floor(Math.random()*sizes.length)];
+    $('word').style.transform=`translateX(${shifts[Math.floor(Math.random()*shifts.length)]}px)`;
+  }
+
+  $('colors').innerHTML=[...a].sort(()=>Math.random()-.5).map(x=>`<button class="colorBtn" data-color="${esc(x[0])}" style="background:${x[1]};color:${x[0]==='노랑'?'#111':'white'}">${esc(x[0])}</button>`).join('');
+  document.querySelectorAll('.colorBtn').forEach(b=>b.addEventListener('click',()=>pick(b.dataset.color)));
+}
+
+function pick(x){
+  if(ended||Number($('time').textContent)<=0)return;
+  if(x===answer){correct++;score+=10}else{wrong++;score-=stage===1?0:stage===2?10:50}
+  $('score').textContent=score; makeQ();
+}
+
+async function finishStage(){
+  if(ended)return;
+  ended=true; clearInterval(timer);
+  const key=`he_submitted_${roomId}_${stage}_${lastStartTime}`;
+  try{
+    if(!localStorage.getItem(key)){
+      await set(roomRef(`results/stage${stage}/${pid}`),{pid,name,score,correct,wrong,attempts:correct+wrong,submittedAt:serverTimestamp(),startTime:lastStartTime});
+      localStorage.setItem(key,'1');
+    }
+    await showResults(stage);
+  }catch(e){console.error(e);alert('결과 저장에 실패했습니다: '+e.message)}
+}
+
+async function getStage(s){
+  const snap=await get(roomRef(`results/stage${s}`));
+  const v=snap.val()||{};
+  return Object.entries(v).map(([id,x])=>({...x,pid:x.pid||id}));
+}
+function rows(arr,metric='score'){
+  return arr.map((x,i)=>`<div class="row"><b>${i+1}</b><span>${esc(x.name)}</span><strong>${metric==='wrong'?(Number(x.wrong)||0)+' Errors':(Number(x.score)||0)+'점'}</strong></div>`).join('')||'<div class="msg">아직 결과가 없습니다.</div>';
+}
+async function showResults(s){
+  stage=s; const a=await getStage(s);
+  a.sort((x,y)=>(Number(y.score)||0)-(Number(x.score)||0)||(Number(y.correct)||0)-(Number(x.correct)||0)||(Number(x.wrong)||0)-(Number(y.wrong)||0));
+  $('resultTitle').textContent=`STAGE ${s} RANKING`; $('resultRank').innerHTML=rows(a);
+  $('errorBox').classList.toggle('hidden',s!==3);
+  if(s===3)$('errorRank').innerHTML=rows([...a].sort((x,y)=>(Number(y.wrong)||0)-(Number(x.wrong)||0)||(Number(x.score)||0)-(Number(y.score)||0)),'wrong');
+  show('result');
+}
+async function buildFinal(){
+  const all={};
+  for(let s=1;s<=3;s++){
+    for(const x of await getStage(s)){
+      const id=x.pid||x.name;
+      all[id]??={name:x.name,score:0,correct:0,wrong:0};
+      all[id].name=x.name;
+      all[id].score+=Number(x.score)||0;
+      all[id].correct+=Number(x.correct)||0;
+      all[id].wrong+=Number(x.wrong)||0;
+    }
+  }
+  return Object.values(all).sort((x,y)=>y.score-x.score||y.correct-x.correct||x.wrong-y.wrong);
+}
+async function showFinal(){
+  const a=await buildFinal();
+  $('finalRank').innerHTML=a.map((x,i)=>`<div class="row"><b>${i+1}</b><span>${esc(x.name)}<div class="small">정답 ${x.correct} · 오답 ${x.wrong}</div></span><strong>${x.score}점</strong></div>`).join('')||'<div class="msg">아직 결과가 없습니다.</div>';
+  show('final');
+}
+async function renderAdminRank(s){
+  if(!s){$('rank').innerHTML='<div class="msg">게임 결과를 기다리는 중입니다.</div>';return}
+  const a=await getStage(s);
+  a.sort((x,y)=>(Number(y.score)||0)-(Number(x.score)||0);
+  $('rank').innerHTML=rows(a);
+}
+async function renderAdminFinal(){
+  const a=await buildFinal();
+  $('rank').innerHTML=a.map((x,i)=>`<div class="row"><b>${i+1}</b><span>${esc(x.name)}<div class="small">정답 ${x.correct} · 오답 ${x.wrong}</div></span><strong>${x.score}점</strong></div>`).join('')||'<div class="msg">아직 결과가 없습니다.</div>';
+}
+
+if(localStorage.he_room&&localStorage.he_name){
+  roomId=localStorage.he_room;name=localStorage.he_name;
+  $('name').value=name;$('room').value=roomId;
+}
+window.addEventListener('error',e=>console.error('HUMAN ERROR CHALLENGE:',e.message));
+</script>
+</body>
+</html>

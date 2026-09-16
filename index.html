@@ -50,9 +50,17 @@ input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;backgr
   <h2>관리자</h2>
   <input id="adminRoom" maxlength="8" placeholder="ROOM CODE" value="4821">
   <input id="pw" type="password" placeholder="관리자 비밀번호">
-  <button class="primary" id="adminLoginBtn">접속</button>
+
+<label class="small">게임시간</label>
+<select id="gameDuration">
+  <option value="30" selected>30초</option>
+  <option value="45">45초</option>
+  <option value="60">60초</option>
+</select>
+
+<button class="primary" id="adminLoginBtn">접속</button>
   <button data-action="go" data-target="home">뒤로</button>
-  <p class="small">※ KHNP 비밀번호는 편의용 UI 잠금입니다. 공개 정적 사이트에서 강한 보안 수단은 아닙니다.</p>
+
 </section>
 
 <section id="admin" class="card hidden">
@@ -139,6 +147,8 @@ function adminLogin(){
   if($('pw').value!=='KHNP'){alert('비밀번호가 올바르지 않습니다.');return}
   roomId=$('adminRoom').value.trim().toUpperCase();
   if(!roomId){alert('ROOM CODE를 입력하세요.');return}
+  const duration = Number($('gameDuration').value) || 30;
+localStorage.he_duration = duration;
   show('admin');
   listenAdmin();
 }
@@ -148,7 +158,7 @@ function listenParticipant(){
   onValue(roomRef('game'),s=>{
     if(!s.exists())return;
     const g=s.val()||{};
-    if(/^stage[123]$/.test(g.status))startStage(Number(g.currentStage),Number(g.startTime));
+if(/^stage[123]$/.test(g.status))startStage(Number(g.currentStage),Number(g.startTime),Number(g.duration)||30);
     else if(/^stage[123]Result$/.test(g.status))showResults(Number(g.currentStage));
     else if(g.status==='final')showFinal();
     else if(g.status==='waiting')show('waiting');
@@ -173,7 +183,13 @@ function listenAdmin(){
 async function setStage(s){
   try{
     stage=s;
-    await set(roomRef('game'),{status:`stage${s}`,currentStage:s,startTime:Date.now()+1500});
+const duration = Number(localStorage.he_duration) || 30;
+await set(roomRef('game'),{
+  status:`stage${s}`,
+  currentStage:s,
+  startTime:Date.now()+1500,
+  duration:duration
+});
     $('adminStatus').textContent=`1.5초 후 ${s}단계 시작`;
   }catch(e){console.error(e);alert('단계 시작에 실패했습니다: '+e.message)}
 }
@@ -200,15 +216,15 @@ async function resetGame(){
   }catch(e){console.error(e);alert('초기화에 실패했습니다: '+e.message)}
 }
 
-function startStage(s,startTime){
+function startStage(s,startTime,duration=30){
   startTime=Number(startTime)||Date.now();
   if(stage===s&&lastStartTime===startTime&&!ended)return;
   clearInterval(timer);
   lastStartTime=startTime; stage=s; score=0; correct=0; wrong=0; ended=false;
-  $('stageNo').textContent=s; $('score').textContent='0'; $('time').textContent='60'; show('game');
+$('stageNo').textContent=s; $('score').textContent='0'; $('time').textContent=duration; show('game');
   makeQ();
   const tick=()=>{
-    const left=Math.max(0,Math.ceil((startTime+60000-Date.now())/1000));
+const left=Math.max(0,Math.ceil((startTime+(duration*1000)-Date.now())/1000));
     $('time').textContent=left;
     if(left<=0)finishStage();
   };
@@ -277,7 +293,29 @@ async function showResults(s){
   if(s===3)$('errorRank').innerHTML=rows([...a].sort((x,y)=>(Number(y.wrong)||0)-(Number(x.wrong)||0)||(Number(x.score)||0)-(Number(y.score)||0)),'wrong');
   show('result');
 }
-async function buildFinal(){
+async function buildErrorStats(){
+  const stats=[];
+
+  for(let s=1;s<=3;s++){
+    const data=await getStage(s);
+
+    const correct=data.reduce((sum,x)=>sum+(Number(x.correct)||0),0);
+    const wrong=data.reduce((sum,x)=>sum+(Number(x.wrong)||0),0);
+    const total=correct+wrong;
+    const rate=total>0 ? (wrong/total*100) : 0;
+
+    stats.push({
+      stage:s,
+      correct,
+      wrong,
+      total,
+      rate
+    });
+  }
+
+  return stats;
+}
+  async function buildFinal(){
   const all={};
   for(let s=1;s<=3;s++){
     for(const x of await getStage(s)){
@@ -297,14 +335,72 @@ async function showFinal(){
   show('final');
 }
 async function renderAdminRank(s){
-  if(!s){$('rank').innerHTML='<div class="msg">게임 결과를 기다리는 중입니다.</div>';return}
+  if(!s){
+    $('rank').innerHTML='<div class="msg">게임 결과를 기다리는 중입니다.</div>';
+    return;
+  }
+
   const a=await getStage(s);
-a.sort((x,y)=>(Number(y.score)||0)-(Number(x.score)||0));
-  $('rank').innerHTML=rows(a);
+  a.sort((x,y)=>(Number(y.score)||0)-(Number(x.score)||0));
+
+  let html=rows(a);
+
+  if(Number(s)===3){
+    const errors=[...a].sort((x,y)=>
+      (Number(y.wrong)||0)-(Number(x.wrong)||0)
+    );
+
+    html+=`
+      <h3 style="margin-top:24px">ERROR RANKING</h3>
+      <div class="small" style="margin-bottom:10px">
+        압박 조건에서 발생한 오류 횟수 · 오답이 많은 순
+      </div>
+      ${errors.map((x,i)=>`
+        <div class="row">
+          <b>${i+1}</b>
+          <span>${esc(x.name)}</span>
+          <strong>${Number(x.wrong)||0} ERROR</strong>
+        </div>
+      `).join('')}
+    `;
+  }
+
+  $('rank').innerHTML=html;
 }
 async function renderAdminFinal(){
+  const stats=await buildErrorStats();
   const a=await buildFinal();
-  $('rank').innerHTML=a.map((x,i)=>`<div class="row"><b>${i+1}</b><span>${esc(x.name)}<div class="small">정답 ${x.correct} · 오답 ${x.wrong}</div></span><strong>${x.score}점</strong></div>`).join('')||'<div class="msg">아직 결과가 없습니다.</div>';
+
+  const statsHtml=`
+    <h3>전체 참여자 단계별 오답률</h3>
+    <div class="small" style="margin-bottom:10px">
+      전체 참여자의 응답을 기준으로 계산한 단계별 오류 비율
+    </div>
+    ${stats.map(x=>`
+      <div class="row">
+        <b>STAGE ${x.stage}</b>
+        <span>오답 ${x.wrong} / 총 응답 ${x.total}</span>
+        <strong>${x.rate.toFixed(1)}%</strong>
+      </div>
+    `).join('')}
+
+    <h3 style="margin-top:28px">FINAL RANKING</h3>
+  `;
+
+  const rankHtml=a.map((x,i)=>`
+    <div class="row">
+      <b>${i+1}</b>
+      <span>
+        ${esc(x.name)}
+        <div class="small">
+          정답 ${x.correct} · 오답 ${x.wrong}
+        </div>
+      </span>
+      <strong>${x.score}점</strong>
+    </div>
+  `).join('') || '<div class="msg">아직 결과가 없습니다.</div>';
+
+  $('rank').innerHTML=statsHtml+rankHtml;
 }
 
 if(localStorage.he_room&&localStorage.he_name){

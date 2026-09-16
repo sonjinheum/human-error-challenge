@@ -299,7 +299,7 @@ async function showFinal(){
 async function renderAdminRank(s){
   if(!s){$('rank').innerHTML='<div class="msg">게임 결과를 기다리는 중입니다.</div>';return}
   const a=await getStage(s);
-  a.sort((x,y)=>(Number(y.score)||0)-(Number(x.score)||0));
+a.sort((x,y)=>(Number(y.score)||0)-(Number(x.score)||0));
   $('rank').innerHTML=rows(a);
 }
 async function renderAdminFinal(){

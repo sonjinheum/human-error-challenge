@@ -226,7 +226,9 @@ async function joinGame(){
     $('joinMsg').textContent='접속 중...';
     localStorage.he_name=name; localStorage.he_room=roomId;
     await set(roomRef(`participants/${pid}`),{name,joinedAt:Date.now()});
-    $('roomLabel').textContent=roomId; listenParticipant(); show('waiting');
+         joinedSuccessfully=true;
+     kickedFromSession=false;
+$('roomLabel').textContent=roomId; listenParticipant(); show('waiting');
   }catch(e){console.error(e);$('joinMsg').textContent='접속에 실패했습니다. 인터넷/Firebase 설정을 확인해주세요.'}
 }
 

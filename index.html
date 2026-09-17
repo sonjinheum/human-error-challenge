@@ -49,6 +49,14 @@ input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;backgr
 .colorBtn{position:relative;overflow:hidden}
 .colorBtn:before{content:"";position:absolute;left:10%;right:10%;top:7px;height:22%;border-radius:999px;background:#ffffff20}
 
+.stage3Colors{grid-template-columns:repeat(4,1fr);gap:7px}
+.stage3Colors .colorBtn{min-height:54px;padding:9px 4px;margin:0;border-radius:14px;border-bottom-width:4px;font-size:15px}
+@media(max-width:420px){
+  .stage3Colors{gap:6px}
+  .stage3Colors .colorBtn{min-height:50px;padding:7px 2px;font-size:14px;border-radius:12px}
+  .gameCard{padding:16px}
+  .wordArea{min-height:205px}
+}
 @media(min-width:700px){.colors{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
@@ -399,15 +407,16 @@ function makeQ(){
   if(stage===1){
     $('word').style.fontSize='clamp(58px,16vw,104px)'; $('word').style.transform='translate(0,0) rotate(0deg)';
   }else if(stage===2){
-    const sizes=['clamp(42px,11vw,68px)','clamp(56px,15vw,92px)','clamp(72px,19vw,120px)'],xs=[-42,-25,0,25,42],ys=[-18,0,18];
+    const sizes=['clamp(42px,11vw,68px)','clamp(56px,15vw,92px)','clamp(72px,19vw,120px)'];
     $('word').style.fontSize=sizes[Math.floor(Math.random()*sizes.length)];
-    $('word').style.transform=`translate(${xs[Math.floor(Math.random()*xs.length)]}px,${ys[Math.floor(Math.random()*ys.length)]}px) rotate(0deg)`;
+    $('word').style.transform='translate(0,0) rotate(0deg)';
   }else{
     const sizes=['clamp(34px,9vw,56px)','clamp(48px,13vw,82px)','clamp(64px,17vw,108px)','clamp(78px,20vw,132px)'],xs=[-58,-38,-18,0,18,38,58],ys=[-34,-18,0,18,34],angles=[-12,-8,-4,0,4,8,12];
     $('word').style.fontSize=sizes[Math.floor(Math.random()*sizes.length)];
     $('word').style.transform=`translate(${xs[Math.floor(Math.random()*xs.length)]}px,${ys[Math.floor(Math.random()*ys.length)]}px) rotate(${angles[Math.floor(Math.random()*angles.length)]}deg)`;
   }
 
+  $('colors').classList.toggle('stage3Colors',stage===3);
   $('colors').innerHTML=[...a].sort(()=>Math.random()-.5).map(x=>`<button class="colorBtn" data-color="${esc(x[0])}" style="background:${x[1]};color:${x[0]==='노랑'?'#111':'white'}">${esc(x[0])}</button>`).join('');
   document.querySelectorAll('.colorBtn').forEach(b=>b.addEventListener('click',()=>pick(b.dataset.color)));
 }

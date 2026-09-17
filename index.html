@@ -198,6 +198,7 @@ const C={
 let roomId='',name='',stage=0,score=0,correct=0,wrong=0,answer='',ended=false,timer=null,lastStartTime=0;
 let adminTimerInterval=null,adminTimerStage=0,adminTimerStart=0;
 let joinedSuccessfully=false;
+let kickedFromSession=false;
 let pid=localStorage.he_pid || (crypto.randomUUID?.() || ('p-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
 localStorage.he_pid=pid;
 
@@ -247,7 +248,7 @@ function listenParticipant(){
     $('count').textContent=entries.length;
 
     if(joinedSuccessfully && !p[pid]){
-      joinedSuccessfully=false; clearInterval(timer); ended=true;
+      joinedSuccessfully=false; kickedFromSession=true; clearInterval(timer); ended=true;
       $('joinMsg').textContent='관리자가 참가 세션을 종료했습니다. 다시 참가할 수 있습니다.';
       show('join');
       setTimeout(()=>{const n=$('name');if(n)n.focus({preventScroll:true});},180);
@@ -267,6 +268,7 @@ function listenParticipant(){
 
   onValue(roomRef('game'),s=>{
     if(!s.exists())return;
+    if(kickedFromSession || !joinedSuccessfully)return;
     const g=s.val()||{};
 
     if(/^stage[123]$/.test(g.status))
@@ -387,6 +389,7 @@ async function resetGame(){
   }catch(e){console.error(e);alert('초기화에 실패했습니다: '+e.message)}
 }
 function showStartThenPlay(s,startTime,duration=30){
+  if(kickedFromSession || !joinedSuccessfully)return;
   show('waiting');
 
   const ready=$('readyStatus');
@@ -406,6 +409,7 @@ function showStartThenPlay(s,startTime,duration=30){
   },1000);
 }
 function startStage(s,startTime,duration=30){
+  if(kickedFromSession || !joinedSuccessfully)return;
   startTime=Number(startTime)||Date.now();
   if(stage===s&&lastStartTime===startTime&&!ended)return;
   clearInterval(timer);

@@ -11,14 +11,26 @@ body{margin:0;font-family:system-ui,-apple-system,'Noto Sans KR',sans-serif;back
 .wrap{max-width:900px;margin:auto;padding:24px}.card{background:rgba(16,29,49,.94);border:1px solid #29405e;border-radius:22px;padding:24px;box-shadow:0 18px 60px #0007}
 .center{text-align:center}.hidden{display:none!important}h1{font-size:clamp(30px,7vw,60px);margin:10px 0}.sub{color:var(--muted)}
 button,input{font:inherit}button{border:0;border-radius:14px;padding:15px 18px;font-weight:800;cursor:pointer;background:#1b3555;color:white;margin:6px}.primary{background:var(--accent);color:#00151b}.danger{background:#6e2630}
-.colors{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.colorBtn{height:78px;border:2px solid #ffffff33;font-size:18px}
-.wordArea{min-height:180px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.word{font-size:clamp(48px,14vw,96px);font-weight:1000;margin:28px 0;text-shadow:0 4px 20px #000;transition:font-size .08s,transform .08s}
+.colors{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.colorBtn{min-height:78px;border:2px solid #ffffff38;border-bottom:5px solid #00000045;border-radius:20px;font-size:20px;font-weight:1000;box-shadow:0 8px 18px #0005,inset 0 1px 0 #ffffff55;transition:transform .08s,filter .08s}
+.colorBtn:active{transform:translateY(3px) scale(.97);border-bottom-width:2px;filter:brightness(1.12)}
+.wordArea{position:relative;min-height:230px;margin:14px 0;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #ffffff1f;border-radius:24px;background:radial-gradient(circle at 50% 45%,#1a3657aa,#091525 72%);box-shadow:inset 0 0 35px #0004}
+.word{position:relative;z-index:2;font-size:clamp(48px,14vw,96px);font-weight:1000;margin:28px 0;text-shadow:0 5px 22px #0009;transition:font-size .10s,transform .10s;white-space:nowrap}
 .hud{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.pill{background:#07111f;border:1px solid #29405e;border-radius:999px;padding:8px 13px}.timer{font-size:30px;font-weight:900}
 .list{display:grid;gap:8px;margin-top:16px}.row{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;padding:12px;background:#0a1627;border-radius:12px}
 .admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
 input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;background:#07111f;color:white;margin:8px 0}
 .msg{padding:12px;border-radius:12px;background:#0a1627;margin:10px 0}.small{font-size:13px;color:var(--muted)}
+
+.gameCard{background:linear-gradient(180deg,#102541,#0b192c);border-color:#31567c}
+.gameGuide{display:inline-block;padding:8px 14px;border:1px solid #ffffff24;border-radius:999px;background:#ffffff0b;color:#cbd8e8;font-size:13px;margin-top:10px}
+.stageMission{margin:14px 0 0;color:#69f0ae;font-size:clamp(17px,4.5vw,22px);font-weight:900}
+.feedback{position:absolute;z-index:5;left:50%;top:12px;transform:translateX(-50%) scale(.8);padding:8px 16px;border-radius:999px;font-weight:1000;font-size:20px;opacity:0;pointer-events:none}
+.feedback.show{animation:feedbackPop .42s ease-out}.feedback.good{background:#69f0ae;color:#052217}.feedback.bad{background:#ff6577;color:white}
+@keyframes feedbackPop{0%{opacity:0;transform:translateX(-50%) scale(.65)}25%{opacity:1;transform:translateX(-50%) scale(1.12)}75%{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) scale(.9)}}
+.adminProgress{padding:18px;border-radius:18px;background:linear-gradient(180deg,#0c2037,#081625);border:1px solid #294d70;margin:14px 0;text-align:center}
+.adminProgressTitle{font-size:20px;font-weight:1000;color:#69f0ae}.adminTimer{font-size:clamp(42px,9vw,64px);line-height:1;font-weight:1000;color:#43e6ff;margin:14px 0 12px}
+.progressTrack{height:12px;background:#06101d;border-radius:999px;overflow:hidden;border:1px solid #29405e}.progressFill{height:100%;width:0%;background:linear-gradient(90deg,#43e6ff,#69f0ae);border-radius:999px;transition:width .2s linear}
 @media(min-width:700px){.colors{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
@@ -26,7 +38,7 @@ input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;backgr
 <div class="wrap">
 <section id="home" class="card center">
   <div class="sub">HUMAN ERROR PREVENTION</div><h1>HUMAN ERROR<br>CHALLENGE</h1>
-  <p class="sub">누구나 실수할 수 있습니다.</p>
+  <p class="sub" style="font-size:18px;font-weight:800;color:#69f0ae;">당신의 집중력은 몇 등입니까?</p>
   <button class="primary" data-action="go" data-target="join">게임 참가</button>
   <button data-action="go" data-target="adminLogin">관리자</button>
 </section>
@@ -41,9 +53,25 @@ input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;backgr
 </section>
 
 <section id="waiting" class="card center hidden">
-  <h2>참가 완료!</h2><p>교수자의 게임 시작을 기다려주세요.</p>
-  <div class="pill">현재 참가자 <b id="count">0</b>명</div>
-  <p class="small">ROOM <span id="roomLabel"></span></p>
+  <div class="sub">HUMAN ERROR CHALLENGE</div>
+
+  <div id="readyStatus"
+       style="font-size:clamp(42px,12vw,76px);font-weight:1000;color:#69f0ae;margin:20px 0 8px;">
+    READY
+  </div>
+
+  <h2 id="waitingMessage">게임 참가 준비 완료</h2>
+  <p class="sub">교수자의 게임 시작을 기다려주세요.</p>
+
+  <div class="pill" style="margin:20px 0;">
+    현재 접속자 <b id="count">0</b>명
+  </div>
+
+  <div id="waitingPeople" class="list" style="text-align:left;"></div>
+
+  <p class="small" style="margin-top:20px;">
+    ROOM <span id="roomLabel"></span>
+  </p>
 </section>
 
 <section id="adminLogin" class="card hidden">
@@ -72,15 +100,22 @@ input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;backgr
     <button id="finalBtn">최종 결과</button><button class="danger" id="resetBtn">게임 초기화</button>
   </div>
   <div id="adminStatus" class="msg">대기 중</div>
+  <div id="adminGameProgress" class="adminProgress">
+    <div id="adminStageText" class="adminProgressTitle">게임 시작 대기</div>
+    <div id="adminTimer" class="adminTimer">--초</div>
+    <div class="progressTrack"><div id="adminProgressBar" class="progressFill"></div></div>
+    <div id="adminProgressMessage" class="small" style="margin-top:10px;">참가자의 게임 시작을 기다리고 있습니다.</div>
+  </div>
   <h3>참가자</h3><div id="people" class="list"></div>
   <h3>Ranking</h3><div id="rank" class="list"></div>
 </section>
 
-<section id="game" class="card center hidden">
-  <div class="hud"><span class="pill">STAGE <b id="stageNo"></b></span><span class="timer"><b id="time">60</b>s</span><span class="pill">SCORE <b id="score">0</b></span></div>
-  <div class="wordArea"><div id="word" class="word">빨강</div></div>
+<section id="game" class="card center hidden gameCard">
+  <div class="hud"><span class="pill">STAGE <b id="stageNo"></b>/3</span><span class="timer">⏱ <b id="time">30</b>s</span><span class="pill">SCORE <b id="score">0</b></span></div>
+  <div id="stageMission" class="stageMission">빠르게 판단하라!</div>
+  <div class="wordArea"><div id="feedback" class="feedback">+10</div><div id="word" class="word">빨강</div></div>
   <div id="colors" class="colors"></div>
-  <div class="small">단어의 뜻이 아니라 <b>글자의 실제 색</b>을 선택하세요.</div>
+  <div class="gameGuide">단어의 뜻이 아니라 <b>글자의 실제 색</b>을 선택하세요.</div>
 </section>
 
 <section id="result" class="card hidden">
@@ -90,6 +125,7 @@ input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;backgr
 </section>
 
 <section id="final" class="card hidden">
+  <div class="center"><div class="sub">HUMAN ERROR CHALLENGE</div><h2 style="font-size:clamp(28px,7vw,46px);margin-bottom:6px;">집중력 최강자는 누구인가?</h2></div>
   <h2>FINAL RANKING</h2><div id="finalRank" class="list"></div>
   <hr style="border-color:#29405e;margin:24px 0">
   <div class="center"><h2>잠깐! 당신도 방금 실수했습니다.</h2><p>인간은 누구나 실수할 수 있습니다.</p>
@@ -116,6 +152,7 @@ const C={
 };
 
 let roomId='',name='',stage=0,score=0,correct=0,wrong=0,answer='',ended=false,timer=null,lastStartTime=0;
+let adminTimerInterval=null;
 let pid=localStorage.he_pid || (crypto.randomUUID?.() || ('p-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
 localStorage.he_pid=pid;
 
@@ -154,30 +191,92 @@ localStorage.he_duration = duration;
 }
 
 function listenParticipant(){
-  onValue(roomRef('participants'),s=>$('count').textContent=s.exists()?s.size:Object.keys(s.val()||{}).length);
-  onValue(roomRef('game'),s=>{
-    if(!s.exists())return;
-    const g=s.val()||{};
-if(/^stage[123]$/.test(g.status))startStage(Number(g.currentStage),Number(g.startTime),Number(g.duration)||30);
-    else if(/^stage[123]Result$/.test(g.status))showResults(Number(g.currentStage));
-    else if(g.status==='final')showFinal();
-    else if(g.status==='waiting')show('waiting');
-  });
-}
-
-function listenAdmin(){
   onValue(roomRef('participants'),s=>{
     const p=s.val()||{};
     const entries=Object.entries(p);
-    $('adminCount').textContent=entries.length;
-    $('people').innerHTML=entries.length?entries.map(([id,x],i)=>`<div class="row"><b>${i+1}</b><span>${esc(x.name)}</span><span>READY</span></div>`).join(''):'<div class="msg">아직 참가자가 없습니다.</div>';
-  },e=>{$('adminStatus').textContent='참가자 읽기 오류: '+e.message;console.error(e)});
+
+    $('count').textContent=entries.length;
+
+    $('waitingPeople').innerHTML=entries.length
+      ? entries.map(([id,x],i)=>`
+          <div class="row">
+            <b>✓</b>
+            <span>${esc(x.name)}</span>
+            <strong>READY</strong>
+          </div>
+        `).join('')
+      : '<div class="msg">접속자를 기다리는 중입니다.</div>';
+  });
+
   onValue(roomRef('game'),s=>{
+    if(!s.exists())return;
     const g=s.val()||{};
-    $('adminStatus').textContent=g.status?`현재 상태: ${g.status}`:'대기 중';
-    renderAdminRank(Number(g.currentStage)||0);
-  },e=>console.error(e));
-  onValue(roomRef('results'),()=>renderAdminRank(),e=>console.error(e));
+
+    if(/^stage[123]$/.test(g.status))
+      showStartThenPlay(
+        Number(g.currentStage),
+        Number(g.startTime),
+        Number(g.duration)||30
+      );
+    else if(/^stage[123]Result$/.test(g.status))
+      showResults(Number(g.currentStage));
+    else if(g.status==='final')
+      showFinal();
+    else if(g.status==='waiting'){
+      $('readyStatus').textContent='READY'; $('readyStatus').style.color='#69f0ae';
+      $('waitingMessage').textContent='게임 참가 준비 완료'; show('waiting');
+    }
+  });
+}
+
+function stopAdminTimer(){clearInterval(adminTimerInterval);adminTimerInterval=null}
+function resetAdminProgress(){
+ stopAdminTimer(); $('adminStageText').textContent='게임 시작 대기'; $('adminStageText').style.color='#69f0ae';
+ $('adminTimer').textContent='--초'; $('adminTimer').style.color='#43e6ff'; $('adminProgressBar').style.width='0%';
+ $('adminProgressMessage').textContent='참가자의 게임 시작을 기다리고 있습니다.';
+}
+function startAdminTimer(s,startTime,duration=30){
+ stopAdminTimer(); startTime=Number(startTime)||Date.now(); duration=Number(duration)||30;
+ const tick=()=>{
+  const now=Date.now();
+  if(now<startTime){
+   $('adminStageText').textContent=`STAGE ${s} 시작 준비`; $('adminTimer').textContent=`${duration}초`;
+   $('adminProgressBar').style.width='0%'; $('adminProgressMessage').textContent='교육생 화면에서 START를 준비하고 있습니다.'; return;
+  }
+  const elapsed=Math.max(0,now-startTime), left=Math.max(0,Math.ceil((startTime+duration*1000-now)/1000));
+  const progress=Math.min(100,Math.max(0,elapsed/(duration*1000)*100));
+  if(left>0){
+   $('adminStageText').textContent=`STAGE ${s} 진행 중`; $('adminTimer').textContent=`${left}초`; $('adminTimer').style.color='#43e6ff';
+   $('adminProgressBar').style.width=`${progress}%`; $('adminProgressMessage').textContent=`STAGE ${s} 게임이 진행되고 있습니다.`;
+  }else{
+   $('adminStageText').textContent=`✓ STAGE ${s} 게임 완료`; $('adminTimer').textContent='완료'; $('adminTimer').style.color='#69f0ae';
+   $('adminProgressBar').style.width='100%'; $('adminProgressMessage').textContent=`${s}단계 결과 버튼을 눌러 결과를 확인하세요.`; stopAdminTimer();
+  }
+ };
+ tick(); adminTimerInterval=setInterval(tick,200);
+}
+function listenAdmin(){
+ onValue(roomRef('participants'),s=>{
+  const entries=Object.entries(s.val()||{}); $('adminCount').textContent=entries.length;
+  $('people').innerHTML=entries.length?entries.map(([id,x],i)=>`<div class="row"><b>${i+1}</b><span>${esc(x.name)}</span><span>READY</span></div>`).join(''):'<div class="msg">아직 참가자가 없습니다.</div>';
+ },e=>{$('adminStatus').textContent='참가자 읽기 오류: '+e.message;console.error(e)});
+ onValue(roomRef('game'),s=>{
+  const g=s.val()||{}, currentStage=Number(g.currentStage)||0;
+  $('adminStatus').textContent=g.status?`현재 상태: ${g.status}`:'대기 중';
+  if(/^stage[123]$/.test(g.status)) startAdminTimer(currentStage,Number(g.startTime),Number(g.duration)||30);
+  else if(g.status==='waiting') resetAdminProgress();
+  else if(/^stage[123]Result$/.test(g.status)){
+   stopAdminTimer(); $('adminStageText').textContent=`✓ STAGE ${currentStage} 결과 확인`; $('adminTimer').textContent='완료';
+   $('adminTimer').style.color='#69f0ae'; $('adminProgressBar').style.width='100%'; $('adminProgressMessage').textContent=`STAGE ${currentStage} 결과를 확인하고 있습니다.`;
+  }else if(g.status==='final'){
+   stopAdminTimer(); $('adminStageText').textContent='FINAL RESULT'; $('adminTimer').textContent='🏆';
+   $('adminProgressBar').style.width='100%'; $('adminProgressMessage').textContent='전체 게임이 완료되었습니다.';
+  }
+  renderAdminRank(currentStage);
+ },e=>console.error(e));
+ onValue(roomRef('results'),async()=>{
+  const gs=await get(roomRef('game')); const cs=Number(gs.val()?.currentStage)||0; if(cs)renderAdminRank(cs);
+ },e=>console.error(e));
 }
 
 async function setStage(s){
@@ -213,15 +312,36 @@ async function resetGame(){
     await set(roomRef('game'),{status:'waiting',currentStage:0,startTime:0});
     $('rank').innerHTML=''; $('people').innerHTML=''; $('adminCount').textContent='0';
     $('adminStatus').textContent='초기화 완료 · 새 참가자를 기다리는 중';
+    resetAdminProgress();
   }catch(e){console.error(e);alert('초기화에 실패했습니다: '+e.message)}
 }
+function showStartThenPlay(s,startTime,duration=30){
+  show('waiting');
 
+  const ready=$('readyStatus');
+  const msg=$('waitingMessage');
+
+  if(ready){
+    ready.textContent='START!';
+    ready.style.color='#43e6ff';
+  }
+
+  if(msg){
+    msg.textContent=`STAGE ${s} 시작!`;
+  }
+
+  setTimeout(()=>{
+    startStage(s,startTime,duration);
+  },1000);
+}
 function startStage(s,startTime,duration=30){
   startTime=Number(startTime)||Date.now();
   if(stage===s&&lastStartTime===startTime&&!ended)return;
   clearInterval(timer);
   lastStartTime=startTime; stage=s; score=0; correct=0; wrong=0; ended=false;
 $('stageNo').textContent=s; $('score').textContent='0'; $('time').textContent=duration; show('game');
+  const missions={1:'빠르게 판단하라!',2:'속도와 정확도를 모두 잡아라!',3:'한 번의 실수가 순위를 뒤집는다!'};
+  $('stageMission').textContent=missions[s]||'집중력 승부가 시작됩니다!';
   makeQ();
   const tick=()=>{
 const left=Math.max(0,Math.ceil((startTime+(duration*1000)-Date.now())/1000));
@@ -241,27 +361,29 @@ function makeQ(){
   $('word').textContent=meaning[0]; $('word').style.color=ink[1];
 
   if(stage===1){
-    $('word').style.fontSize='clamp(48px,14vw,96px)';
-    $('word').style.transform='translateX(0)';
+    $('word').style.fontSize='clamp(58px,16vw,104px)'; $('word').style.transform='translate(0,0) rotate(0deg)';
   }else if(stage===2){
-    const sizes=['clamp(38px,10vw,66px)','clamp(48px,14vw,96px)','clamp(62px,17vw,116px)'];
+    const sizes=['clamp(42px,11vw,68px)','clamp(56px,15vw,92px)','clamp(72px,19vw,120px)'],xs=[-42,-25,0,25,42],ys=[-18,0,18];
     $('word').style.fontSize=sizes[Math.floor(Math.random()*sizes.length)];
-    $('word').style.transform='translateX(0)';
+    $('word').style.transform=`translate(${xs[Math.floor(Math.random()*xs.length)]}px,${ys[Math.floor(Math.random()*ys.length)]}px) rotate(0deg)`;
   }else{
-    const sizes=['clamp(34px,9vw,58px)','clamp(46px,13vw,86px)','clamp(62px,17vw,112px)'];
-    const shifts=[-32,-20,-10,0,10,20,32];
+    const sizes=['clamp(34px,9vw,56px)','clamp(48px,13vw,82px)','clamp(64px,17vw,108px)','clamp(78px,20vw,132px)'],xs=[-58,-38,-18,0,18,38,58],ys=[-34,-18,0,18,34],angles=[-12,-8,-4,0,4,8,12];
     $('word').style.fontSize=sizes[Math.floor(Math.random()*sizes.length)];
-    $('word').style.transform=`translateX(${shifts[Math.floor(Math.random()*shifts.length)]}px)`;
+    $('word').style.transform=`translate(${xs[Math.floor(Math.random()*xs.length)]}px,${ys[Math.floor(Math.random()*ys.length)]}px) rotate(${angles[Math.floor(Math.random()*angles.length)]}deg)`;
   }
 
   $('colors').innerHTML=[...a].sort(()=>Math.random()-.5).map(x=>`<button class="colorBtn" data-color="${esc(x[0])}" style="background:${x[1]};color:${x[0]==='노랑'?'#111':'white'}">${esc(x[0])}</button>`).join('');
   document.querySelectorAll('.colorBtn').forEach(b=>b.addEventListener('click',()=>pick(b.dataset.color)));
 }
 
+function showFeedback(ok){
+ const f=$('feedback'); if(!f)return; f.classList.remove('show','good','bad'); void f.offsetWidth;
+ if(ok){f.textContent='+10 ✓';f.classList.add('good','show')}else{f.textContent='MISS!';f.classList.add('bad','show')}
+}
 function pick(x){
-  if(ended||Number($('time').textContent)<=0)return;
-  if(x===answer){correct++;score+=10}else{wrong++;score-=stage===1?0:stage===2?10:50}
-  $('score').textContent=score; makeQ();
+ if(ended||Number($('time').textContent)<=0)return;
+ const ok=x===answer; if(ok){correct++;score+=10}else{wrong++;score-=stage===1?0:stage===2?10:50}
+ $('score').textContent=score; showFeedback(ok); setTimeout(()=>{if(!ended)makeQ()},120);
 }
 
 async function finishStage(){

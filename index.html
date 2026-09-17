@@ -71,7 +71,7 @@ input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;backgr
 
 <section id="join" class="card hidden">
   <h2>게임 참가</h2>
-  <input id="name" maxlength="16" placeholder="이름 또는 닉네임">
+  <input id="name" maxlength="16" placeholder="이름 또는 닉네임" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text">
   <input id="room" maxlength="8" placeholder="ROOM CODE" value="4821">
   <button class="primary" id="joinBtn">참가하기</button>
   <button data-action="go" data-target="home">뒤로</button>
@@ -122,7 +122,7 @@ input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;backgr
     <button class="primary" data-stage="1">1단계 START</button><button data-status="stage1Result">1단계 결과</button>
     <button class="primary" data-stage="2">2단계 START</button><button data-status="stage2Result">2단계 결과</button>
     <button class="primary" data-stage="3">3단계 START</button><button data-status="stage3Result">3단계 결과</button>
-    <button id="finalBtn">최종 결과</button><button class="danger" id="resetBtn">게임 초기화</button>
+    <button id="finalBtn">최종 결과</button><button class="danger" id="kickAllBtn">참가자 전체 퇴장</button><button class="danger" id="resetBtn">게임 초기화</button>
   </div>
   <div id="adminStatus" class="msg">대기 중</div>
   <div id="adminGameProgress" class="adminProgress">
@@ -165,12 +165,16 @@ input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;backgr
 </section>
 
 <section id="final" class="card hidden">
-  <div class="center"><div class="sub">HUMAN ERROR CHALLENGE</div><h2 style="font-size:clamp(28px,7vw,46px);margin-bottom:6px;">당신의 순위는?</h2></div>
-  <h2>FINAL RANKING</h2><div id="finalRank" class="list"></div>
-  <hr style="border-color:#29405e;margin:24px 0">
-  <div class="center"><h2>잠깐! 당신도 방금 실수했습니다.</h2><p>인간은 누구나 실수할 수 있습니다.</p>
-  <p class="sub">선택지가 많아지고, 시간이 부족해지고, 실수에 대한 부담이 커질수록 우리는 더 쉽게 오류를 범합니다.</p>
-  <h3>중요한 것은 실수하지 않는 사람이 되는 것이 아니라,<br>실수가 사고로 이어지지 않도록 환경과 절차를 설계하는 것입니다.</h3></div>
+  <div class="center">
+    <div class="sub">HUMAN ERROR CHALLENGE</div>
+    <h2 style="font-size:clamp(30px,8vw,48px);margin:10px 0;color:#69f0ae;">잠깐! 당신도 방금 실수했습니다.</h2>
+    <p style="font-size:20px;font-weight:900;">인간은 누구나 실수할 수 있습니다.</p>
+    <p class="sub">선택지가 많아지고, 시간이 부족해지고, 실수에 대한 부담이 커질수록 우리는 더 쉽게 오류를 범합니다.</p>
+    <div class="waitHero" style="margin-top:20px;"><h3 style="margin:0;line-height:1.6;">중요한 것은 실수하지 않는 것이 아니라,<br>실수가 발생하지 않도록 환경과 절차를 설계하는 것입니다.</h3></div>
+  </div>
+  <hr style="border-color:#29405e;margin:28px 0">
+  <div class="center"><div class="sub">FINAL RESULT</div><h2 style="font-size:clamp(28px,7vw,46px);margin:6px 0 18px;">🏆 집중력 최강자는 누구인가?</h2></div>
+  <div id="finalRank" class="list"></div>
 </section>
 </div>
 
@@ -193,6 +197,7 @@ const C={
 
 let roomId='',name='',stage=0,score=0,correct=0,wrong=0,answer='',ended=false,timer=null,lastStartTime=0;
 let adminTimerInterval=null,adminTimerStage=0,adminTimerStart=0;
+let joinedSuccessfully=false;
 let pid=localStorage.he_pid || (crypto.randomUUID?.() || ('p-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
 localStorage.he_pid=pid;
 
@@ -200,7 +205,10 @@ const roomRef=(path='')=>ref(db,`rooms/${roomId}${path?'/'+path:''}`);
 
 document.addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return;
-  if(b.dataset.action==='go')show(b.dataset.target);
+  if(b.dataset.action==='go'){
+     show(b.dataset.target);
+     if(b.dataset.target==='join')setTimeout(()=>{const n=$('name');if(n){n.focus({preventScroll:true});n.click();}},180);
+   }
   if(b.dataset.stage)setStage(Number(b.dataset.stage));
   if(b.dataset.status)setStatus(b.dataset.status);
 });
@@ -208,6 +216,7 @@ $('joinBtn').addEventListener('click',joinGame);
 $('adminLoginBtn').addEventListener('click',adminLogin);
 $('finalBtn').addEventListener('click',()=>setStatus('final'));
 $('resetBtn').addEventListener('click',resetGame);
+$('kickAllBtn').addEventListener('click',kickAllParticipants);
 
 async function joinGame(){
   try{
@@ -236,6 +245,14 @@ function listenParticipant(){
     const entries=Object.entries(p);
 
     $('count').textContent=entries.length;
+
+    if(joinedSuccessfully && !p[pid]){
+      joinedSuccessfully=false; clearInterval(timer); ended=true;
+      $('joinMsg').textContent='관리자가 참가 세션을 종료했습니다. 다시 참가할 수 있습니다.';
+      show('join');
+      setTimeout(()=>{const n=$('name');if(n)n.focus({preventScroll:true});},180);
+      return;
+    }
 
     $('waitingPeople').innerHTML=entries.length
       ? entries.map(([id,x],i)=>`
@@ -347,6 +364,16 @@ async function setStatus(status){
     if(/^stage[123]Result$/.test(status))await renderAdminRank(current);
     if(status==='final')await renderAdminFinal();
   }catch(e){console.error(e);alert('상태 변경에 실패했습니다: '+e.message)}
+}
+
+async function kickAllParticipants(){
+  if(!confirm('현재 접속한 참가자를 모두 퇴장시키겠습니까?\n참가자는 다시 접속할 수 있습니다.'))return;
+  try{
+    await remove(roomRef('participants'));
+    $('people').innerHTML='<div class="msg">현재 접속한 참가자가 없습니다.</div>';
+    $('adminCount').textContent='0';
+    $('adminStatus').textContent='참가자 전체 퇴장 완료 · 재접속 가능';
+  }catch(e){console.error(e);alert('참가자 퇴장에 실패했습니다: '+e.message)}
 }
 
 async function resetGame(){

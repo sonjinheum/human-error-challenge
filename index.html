@@ -251,9 +251,8 @@ function listenParticipant(){
 
     if(joinedSuccessfully && !p[pid]){
       joinedSuccessfully=false; kickedFromSession=true; clearInterval(timer); ended=true;
-      $('joinMsg').textContent='관리자가 참가 세션을 종료했습니다. 다시 참가할 수 있습니다.';
-      show('join');
-      setTimeout(()=>{const n=$('name');if(n)n.focus({preventScroll:true});},180);
+      $('joinMsg').textContent='';
+      show('home');
       return;
     }
 

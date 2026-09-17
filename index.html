@@ -22,15 +22,33 @@ button,input{font:inherit}button{border:0;border-radius:14px;padding:15px 18px;f
 input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;background:#07111f;color:white;margin:8px 0}
 .msg{padding:12px;border-radius:12px;background:#0a1627;margin:10px 0}.small{font-size:13px;color:var(--muted)}
 
-.gameCard{background:linear-gradient(180deg,#102541,#0b192c);border-color:#31567c}
-.gameGuide{display:inline-block;padding:8px 14px;border:1px solid #ffffff24;border-radius:999px;background:#ffffff0b;color:#cbd8e8;font-size:13px;margin-top:10px}
-.stageMission{margin:14px 0 0;color:#69f0ae;font-size:clamp(17px,4.5vw,22px);font-weight:900}
-.feedback{position:absolute;z-index:5;left:50%;top:12px;transform:translateX(-50%) scale(.8);padding:8px 16px;border-radius:999px;font-weight:1000;font-size:20px;opacity:0;pointer-events:none}
+.gameCard{position:relative;background:linear-gradient(180deg,#102b49,#0b192c);border:2px solid #315f88;overflow:hidden}
+.gameCard:before,.gameCard:after{content:"";position:absolute;border-radius:50%;filter:blur(1px);opacity:.16;pointer-events:none}
+.gameCard:before{width:180px;height:180px;background:#43e6ff;right:-85px;top:-80px}
+.gameCard:after{width:150px;height:150px;background:#69f0ae;left:-80px;bottom:-80px}
+.gameGuide{display:inline-block;padding:9px 16px;border:1px solid #ffffff2e;border-radius:999px;background:#061526aa;color:#dce8f5;font-size:13px;margin-top:12px;box-shadow:inset 0 1px 0 #ffffff18}
+.stageMission{display:inline-block;margin:16px 0 0;padding:8px 16px;border-radius:999px;background:#69f0ae14;border:1px solid #69f0ae55;color:#8dffc6;font-size:clamp(17px,4.5vw,22px);font-weight:1000}
+.feedback{position:absolute;z-index:5;left:50%;top:12px;transform:translateX(-50%) scale(.8);padding:9px 18px;border-radius:999px;font-weight:1000;font-size:20px;opacity:0;pointer-events:none;box-shadow:0 8px 22px #0008}
 .feedback.show{animation:feedbackPop .42s ease-out}.feedback.good{background:#69f0ae;color:#052217}.feedback.bad{background:#ff6577;color:white}
 @keyframes feedbackPop{0%{opacity:0;transform:translateX(-50%) scale(.65)}25%{opacity:1;transform:translateX(-50%) scale(1.12)}75%{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) scale(.9)}}
 .adminProgress{padding:18px;border-radius:18px;background:linear-gradient(180deg,#0c2037,#081625);border:1px solid #294d70;margin:14px 0;text-align:center}
 .adminProgressTitle{font-size:20px;font-weight:1000;color:#69f0ae}.adminTimer{font-size:clamp(42px,9vw,64px);line-height:1;font-weight:1000;color:#43e6ff;margin:14px 0 12px}
 .progressTrack{height:12px;background:#06101d;border-radius:999px;overflow:hidden;border:1px solid #29405e}.progressFill{height:100%;width:0%;background:linear-gradient(90deg,#43e6ff,#69f0ae);border-radius:999px;transition:width .2s linear}
+
+.hud .pill,.hud .timer{position:relative;z-index:2;background:linear-gradient(180deg,#0d2239,#071421);border:1px solid #3c6286;border-radius:16px;padding:10px 14px;box-shadow:0 6px 16px #0004,inset 0 1px 0 #ffffff18}
+.hud .timer{color:#43e6ff;min-width:110px;text-align:center}
+.waitHero{margin:8px auto 18px;max-width:520px;padding:22px;border-radius:26px;background:linear-gradient(180deg,#102a47,#09192b);border:1px solid #365d82;box-shadow:0 15px 35px #0005,inset 0 1px 0 #ffffff16}
+.readyBadge{display:inline-flex;align-items:center;justify-content:center;min-width:210px;padding:10px 22px;border-radius:999px;background:#69f0ae12;border:2px solid #69f0ae88;box-shadow:0 0 26px #69f0ae22}
+.readyDot{width:10px;height:10px;border-radius:50%;background:#69f0ae;box-shadow:0 0 14px #69f0ae;margin-right:10px}
+#waitingPeople .row{border:1px solid #294663;box-shadow:inset 0 1px 0 #ffffff0e}
+#result,#final{background:linear-gradient(180deg,#102541,#0a1728);border:2px solid #31567c}
+#resultRank .row,#finalRank .row,#errorRank .row{border:1px solid #294663;box-shadow:0 6px 14px #0003}
+#resultRank .row:first-child,#finalRank .row:first-child{background:linear-gradient(90deg,#5b491c,#17263a);border-color:#d8b64c}
+#resultRank .row:nth-child(2),#finalRank .row:nth-child(2){background:linear-gradient(90deg,#344252,#15243a)}
+#resultRank .row:nth-child(3),#finalRank .row:nth-child(3){background:linear-gradient(90deg,#563d2d,#15243a)}
+.colorBtn{position:relative;overflow:hidden}
+.colorBtn:before{content:"";position:absolute;left:10%;right:10%;top:7px;height:22%;border-radius:999px;background:#ffffff20}
+
 @media(min-width:700px){.colors{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
@@ -39,8 +57,8 @@ input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;backgr
 <section id="home" class="card center">
   <div class="sub">HUMAN ERROR PREVENTION</div><h1>HUMAN ERROR<br>CHALLENGE</h1>
   <p class="sub" style="font-size:18px;font-weight:800;color:#69f0ae;">당신의 집중력은 몇 등입니까?</p>
-  <button class="primary" data-action="go" data-target="join">게임 참가</button>
-  <button data-action="go" data-target="adminLogin">관리자</button>
+  <button class="primary" data-action="go" data-target="join">🎮 게임 참가</button>
+  <button data-action="go" data-target="adminLogin">⚙ 관리자</button>
 </section>
 
 <section id="join" class="card hidden">
@@ -53,15 +71,14 @@ input{width:100%;padding:15px;border-radius:12px;border:1px solid #38506f;backgr
 </section>
 
 <section id="waiting" class="card center hidden">
-  <div class="sub">HUMAN ERROR CHALLENGE</div>
-
-  <div id="readyStatus"
-       style="font-size:clamp(42px,12vw,76px);font-weight:1000;color:#69f0ae;margin:20px 0 8px;">
-    READY
+  <div class="waitHero">
+    <div class="sub" style="letter-spacing:2px;font-weight:900">HUMAN ERROR CHALLENGE</div>
+    <div class="readyBadge" style="margin-top:18px"><span class="readyDot"></span>
+      <span id="readyStatus" style="font-size:clamp(38px,11vw,68px);font-weight:1000;color:#69f0ae;">READY</span>
+    </div>
+    <h2 id="waitingMessage" style="margin-bottom:6px">게임 참가 준비 완료</h2>
+    <p class="sub" style="margin-top:0">교수자의 게임 시작을 기다려주세요.</p>
   </div>
-
-  <h2 id="waitingMessage">게임 참가 준비 완료</h2>
-  <p class="sub">교수자의 게임 시작을 기다려주세요.</p>
 
   <div class="pill" style="margin:20px 0;">
     현재 접속자 <b id="count">0</b>명
@@ -152,7 +169,7 @@ const C={
 };
 
 let roomId='',name='',stage=0,score=0,correct=0,wrong=0,answer='',ended=false,timer=null,lastStartTime=0;
-let adminTimerInterval=null;
+let adminTimerInterval=null,adminTimerStage=0,adminTimerStart=0;
 let pid=localStorage.he_pid || (crypto.randomUUID?.() || ('p-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
 localStorage.he_pid=pid;
 
@@ -236,7 +253,9 @@ function resetAdminProgress(){
  $('adminProgressMessage').textContent='참가자의 게임 시작을 기다리고 있습니다.';
 }
 function startAdminTimer(s,startTime,duration=30){
- stopAdminTimer(); startTime=Number(startTime)||Date.now(); duration=Number(duration)||30;
+ startTime=Number(startTime)||Date.now(); duration=Number(duration)||30;
+ if(adminTimerInterval&&adminTimerStage===s&&adminTimerStart===startTime)return;
+ stopAdminTimer(); adminTimerStage=s; adminTimerStart=startTime;
  const tick=()=>{
   const now=Date.now();
   if(now<startTime){
@@ -247,7 +266,7 @@ function startAdminTimer(s,startTime,duration=30){
   const progress=Math.min(100,Math.max(0,elapsed/(duration*1000)*100));
   if(left>0){
    $('adminStageText').textContent=`STAGE ${s} 진행 중`; $('adminTimer').textContent=`${left}초`; $('adminTimer').style.color='#43e6ff';
-   $('adminProgressBar').style.width=`${progress}%`; $('adminProgressMessage').textContent=`STAGE ${s} 게임이 진행되고 있습니다.`;
+   $('adminProgressBar').style.width=`${progress}%`; $('adminProgressMessage').textContent=`참가자 ${$('adminCount').textContent}명 플레이 중`;
   }else{
    $('adminStageText').textContent=`✓ STAGE ${s} 게임 완료`; $('adminTimer').textContent='완료'; $('adminTimer').style.color='#69f0ae';
    $('adminProgressBar').style.width='100%'; $('adminProgressMessage').textContent=`${s}단계 결과 버튼을 눌러 결과를 확인하세요.`; stopAdminTimer();
@@ -283,12 +302,14 @@ async function setStage(s){
   try{
     stage=s;
 const duration = Number(localStorage.he_duration) || 30;
+const adminStartTime=Date.now()+1500;
 await set(roomRef('game'),{
   status:`stage${s}`,
   currentStage:s,
-  startTime:Date.now()+1500,
+  startTime:adminStartTime,
   duration:duration
 });
+    startAdminTimer(s,adminStartTime,duration);
     $('adminStatus').textContent=`1.5초 후 ${s}단계 시작`;
   }catch(e){console.error(e);alert('단계 시작에 실패했습니다: '+e.message)}
 }

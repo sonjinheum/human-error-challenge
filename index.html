@@ -231,7 +231,7 @@ async function joinGame(){
 }
 
 function adminLogin(){
-  if($('pw').value!=='KHNP'){alert('비밀번호가 올바르지 않습니다.');return}
+  if($('pw').value!=='son'){alert('비밀번호가 올바르지 않습니다.');return}
   roomId=$('adminRoom').value.trim().toUpperCase();
   if(!roomId){alert('ROOM CODE를 입력하세요.');return}
   const duration = Number($('gameDuration').value) || 30;
